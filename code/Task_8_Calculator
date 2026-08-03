@@ -1,0 +1,16 @@
+def math_calc(phi, theta):
+
+    if phi > theta:
+        value1 = phi-theta
+        value2 = 180 - value1
+    else:
+        value1 = theta-phi
+        value2 = 180 - value1
+
+    if value1 > value2:
+        final_value = value2
+    else:
+        final_value = value1
+    
+    return final_value
+        
