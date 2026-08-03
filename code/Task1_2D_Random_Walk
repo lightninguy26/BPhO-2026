@@ -1,0 +1,89 @@
+import turtle as lost
+import random as r
+import math
+
+SEED = r.randint(0, 1000000)
+#r.seed(SEED)
+#r.seed(928613)
+#r.seed(280111)
+#r.seed(879046)
+
+r.seed(311575)
+
+
+
+screen = lost.Screen()
+screen.title("3D random walk")
+
+t = lost.Turtle()
+t.speed(0)
+t.hideturtle()
+screen.setup(750, 750)
+lost.tracer(0)
+
+lost.bgcolor("black")
+
+N = int(input("Enter the number of steps: "))
+s = float(input("Enter the step size: "))
+simulations = int(input("Enter the number of simulations: "))
+
+def graph():
+    lost.color("light gray")
+    for y in range(-300, 301, 100):
+        for x in range(-300, 301, 2):
+            if x ==0:
+                lost.write(f"{y}", align="right", font=("Arial", 8, "normal"))
+            lost.penup()
+            lost.goto(x, y)
+            lost.pendown()
+            lost.goto(x + 1, y)
+    for x in range(-300, 301, 100):
+        for y in range(-300, 301, 2):
+            if y == 0 and x != 0:
+                lost.write(f"{x}", align="center", font=("Arial", 8, "normal"))
+            lost.penup()
+            lost.goto(x, y)
+            lost.pendown()
+            lost.goto(x, y + 1)
+
+
+def random_walk(s):
+    theta = r.randint(0, 360)
+    lost.setheading(theta)
+    lost.forward(s)
+
+graph()
+for i in range(simulations):
+    steps = 0
+    lost.penup()
+    lost.goto(0, 0)
+    lost.pendown()
+    lost.color(r.random(), r.random(), r.random())
+    while lost.color() == ("black"):
+        lost.color(r.random(), r.random(), r.random())
+    for i in range(N):
+        random_walk(s)
+    screen.update()
+
+    #while math.hypot(lost.xcor(), lost.ycor()) > 0.5 or steps == 0:
+    #    random_walk(s)
+    #    screen.update()
+    #    steps+=1
+    #print(math.hypot(lost.xcor(), lost.ycor()), lost.pos())
+    
+    lost.penup()
+    lost.color("white")
+
+    #lost.goto(-(simulations-1)*65+i*130, 315)
+    #lost.write(f"Total steps: {steps}", align="center", font=("Arial", 12, "normal"))
+lost.goto(0,340)
+lost.write(f"{simulations} simulations, with a step count of {N} with a step size of {s}", align="center", font=("Arial", 15, "normal"))
+
+
+graph()
+print("The simulation is complete. You can close the window now.")
+print(f"Random seed: {SEED}")
+screen.update()
+lost.done()
+
+
