@@ -1,0 +1,75 @@
+import tkinter as tk
+from tkinter import ttk
+import math
+
+
+
+phi = 0
+theta = 0
+
+def math_calc(phi, theta):
+
+    theta_rad = math.radians(theta)
+    phi_rad = math.radians(phi)
+
+    classical = 1 - math.cos(theta_rad)**2 * math.cos(phi_rad)**2 \
+              - math.sin(theta_rad)**2 * math.sin(phi_rad)**2
+
+    quantum = math.sin(phi_rad - theta_rad)**2
+
+    if classical > quantum:
+        final_value = classical-quantum
+    else:
+        final_value = quantum-classical
+        
+    display_difference.set(f"Mistmatch Value %: {final_value*100:.1f}")
+    display_classical.set(f"Classical Value %: {classical*100:.1f}")
+    display_quantum.set(f"Quantum Value %: {quantum*100:.1f}")
+    display_phi.set(f"phi: {phi:.3f}")
+    display_theta.set(f"theta: {theta:.3f}")
+
+root = tk.Tk()
+
+root.configure(bg='black')
+
+display_quantum = tk.StringVar(value="Quantum Value %: 0")
+display_classical = tk.StringVar(value="Classical Value %: 0")
+display_difference = tk.StringVar(value="Mismatch Value %: 0")
+display_phi = tk.StringVar(value="phi: 0.00")
+display_theta = tk.StringVar(value="theta: 0.00")
+
+root.title("Calculator ")
+root.geometry("500x400")
+
+button = tk.Button(root, text="Close App", command=root.destroy, bg='black', fg='white')
+button.pack()
+
+
+difference_label = tk.Label(root, textvariable=display_difference, font=("Arial", 14), bg='black', fg='white')
+difference_label.pack(pady=20)
+
+classical_label = tk.Label(root, textvariable=display_classical, font=("Arial", 14), bg='black', fg='white')
+classical_label.pack(pady=20)
+
+quantum_label = tk.Label(root, textvariable=display_quantum, font=("Arial", 14), bg='black', fg='white')
+quantum_label.pack(pady=20)
+
+
+phi_val = tk.DoubleVar(value=0.0)
+
+phi_slider = ttk.Scale(root, from_=-360, to=360, orient="horizontal", variable=phi_val, command=lambda val: math_calc(float(val), theta_val.get()))
+phi_slider.pack(pady=40, fill="x", padx=30)
+
+phi_label = tk.Label(root, textvariable=display_phi, font=("Arial", 10), bg='black', fg='white')
+phi_label.pack()
+
+
+theta_val = tk.DoubleVar(value=0.0)
+
+theta_slider = ttk.Scale(root, from_=-360, to=360, orient="horizontal", variable=theta_val, command=lambda val: math_calc(phi_val.get(), float(val)))
+theta_slider.pack(pady=40, fill="x", padx=30)
+
+theta_label = tk.Label(root, textvariable=display_theta, font=("Arial", 10), bg='black', fg='white')
+theta_label.pack()
+
+root.mainloop()
