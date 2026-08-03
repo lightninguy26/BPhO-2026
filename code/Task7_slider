@@ -1,0 +1,158 @@
+from google.colab import output
+output.enable_custom_widget_manager()
+
+%matplotlib widget
+
+from scipy import constants as con
+from scipy.interpolate import make_interp_spline as mis
+import numpy as nmpy
+import matplotlib.pyplot as plt
+from matplotlib.lines import lineStyles
+import random as rand
+from matplotlib.widgets import Slider
+
+
+plank=con.hbar
+pi=con.pi
+m=float(input("Enter the mass of the particle:   "))
+a=float(input("Enter the size of the box:   "))
+quantum=int(input("Enter the number of quatum numbers:   "))
+
+quant=[0]
+energy=[0]
+prob_den=[0]
+
+#9.1094e-31
+#5.29177e-11
+
+
+
+x2 = nmpy.linspace(0, a, 1000)
+
+fig, ax = plt.subplots(figsize=(10,6))
+
+
+for i in range(1, quantum+1):
+    energy_calc=(plank**2*pi**2*i**2)/(2*m*a**2*con.e)
+    energy.append(energy_calc)
+    quant.append(i)
+
+    prob_den=(nmpy.sqrt(2/a)*nmpy.sin((i*pi*x2)/a))**2
+
+    ax.plot(x2*1e10, prob_den, label = f"n = {i} E = {energy_calc:.3e}eV")
+
+
+fig.subplots_adjust(bottom=0.35)
+
+ax_freq = fig.add_axes([0.25, 0.20, 0.35, 0.03])
+freq_slider = Slider(ax=ax_freq, label="mass", valmin=m/100, valmax=m*100, valinit=m*10, valfmt="%.2e")
+
+ax_freq2 = fig.add_axes([0.25, 0.13, 0.35, 0.03])
+freq_slider2 = Slider(ax=ax_freq2, label="box width", valmin=a/10, valmax=a*10, valinit=a, valfmt="%.2e")
+
+ax_freq3 = fig.add_axes([0.25, 0.06, 0.35, 0.03])
+freq_slider3 = Slider(ax=ax_freq3, label="quantum numbers", valmin=1, valmax=30, valstep=1, valfmt="%0.0f", valinit=quantum)
+
+
+def update(val):
+    m = freq_slider.val
+    a = freq_slider2.val
+    quantum = int(freq_slider3.val)
+
+    x2 = nmpy.linspace(0, a, 1000)
+
+    ax.clear()
+
+    for i in range(1, quantum+1):
+        energy_calc=(plank**2*pi**2*i**2)/(2*m*a**2*con.e)
+
+        prob_den=(nmpy.sqrt(2/a)*nmpy.sin((i*pi*x2)/a))**2
+
+        ax.plot(x2*1e10, prob_den, label = f"n = {i} E = {energy_calc:.3e}eV")
+
+    ax.legend(loc='upper right')
+    ax.set_xlabel("x /angstroms")
+    ax.set_ylabel("Probability Density")
+    ax.set_title(f"Particle in a box m = {m:.2e}kg")
+
+    ax.set_xlim(left=0, right=6)
+    ax.set_ylim(bottom=0)
+
+    ax.grid(True)
+
+    fig.canvas.draw_idle()
+
+
+freq_slider.on_changed(update)
+freq_slider2.on_changed(update)
+freq_slider3.on_changed(update)
+
+
+ax.legend(loc='upper right')
+ax.set_xlabel("x /angstroms")
+ax.set_ylabel("Probability Density")
+ax.set_title(f"Particle in a box m = {m:.2e}kg")
+
+#ax.set_xlim(left=0)
+ax.set_xlim(left=0, right=6)
+ax.set_ylim(bottom=0)
+
+ax.grid(True)
+
+plt.show()
+
+
+x = nmpy.array(quant)
+y = nmpy.array(energy)
+
+quant_graph = nmpy.linspace(x.min(), x.max(), 300)
+
+spl = mis(x, y, k=min(3, quantum-1))
+energy_graph = spl(quant_graph)
+
+fig2, ax2 = plt.subplots(figsize=(10,6))
+fig2.subplots_adjust(bottom=0.28)
+
+ax_freq4 = fig2.add_axes([0.25, 0.13, 0.35, 0.03])
+freq_slider4 = Slider(ax=ax_freq4, label="mass", valmin=m/100, valmax=m*100, valinit=m*10, valfmt="%.2e")
+
+ax_freq5 = fig2.add_axes([0.25, 0.06, 0.35, 0.03])
+freq_slider5 = Slider(ax=ax_freq5, label="quantum numbers", valmin=0, valmax=30, valstep=1, valfmt="%0.0f", valinit=max(2, quantum))
+
+
+def update2(val):
+    m2 = freq_slider4.val
+    quantum2 = freq_slider5.val
+
+    x = nmpy.arange(1, int(nmpy.floor(quantum2))+1)
+    y = (plank**2*pi**2*x**2)/(2*m2*a**2*con.e)
+
+    quant_graph = nmpy.linspace(0, quantum2, 300)
+    energy_graph = (plank**2*pi**2*quant_graph**2)/(2*m2*a**2*con.e)
+
+    ax2.clear()
+
+    ax2.plot(quant_graph, energy_graph, color='blue', ms=0.5)
+
+    if len(x) > 0:
+        ax2.scatter(x, y, color='blue', zorder=5, marker='*', s=50)
+
+    ax2.set_xlabel("Quantum Number")
+    ax2.set_ylabel("Energy eV")
+    ax2.set_title(f"Particle in a box /eV m = {m2:.2e}kg")
+
+    #ax2.set_xlim(left=0)
+    ax2.set_xlim(left=0, right=30)
+    ax2.set_ylim(bottom=0)
+
+    ax2.grid(True)
+
+    fig2.canvas.draw_idle()
+
+
+freq_slider4.on_changed(update2)
+freq_slider5.on_changed(update2)
+
+update2(None)
+
+plt.show()
