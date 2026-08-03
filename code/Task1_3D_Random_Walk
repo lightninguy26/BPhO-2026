@@ -1,0 +1,258 @@
+import turtle as lost
+import random as r
+import math
+
+
+SCALE = 2
+AXIS_LENGTH = 100
+ORIGIN_X = 0
+ORIGIN_Y = 0
+ORIGIN_Z = 0
+ROTATION = math.radians(20)
+SEED = r.randint(0, 1000000)
+SEED=281765
+r.seed(SEED)
+
+screen = lost.Screen()
+screen.setup(1000, 800)
+screen.title("3D random walk")
+
+
+lost.speed(0)
+lost.hideturtle()
+lost.tracer(0)
+#lost.bgcolor("black")
+
+
+
+
+
+def project(x, y, z):
+    rotated_x = x * math.cos(ROTATION) - y * math.sin(ROTATION)
+    rotated_y = x * math.sin(ROTATION) + y * math.cos(ROTATION)
+
+    # Original isometric projection
+    angle = math.radians(30)
+
+    screen_x = (
+        ORIGIN_X
+        + SCALE * (rotated_x - rotated_y) * math.cos(angle)
+    )
+
+    screen_y = (
+        ORIGIN_Y
+        + SCALE * (
+            z
+            + (rotated_x + rotated_y) * math.sin(angle)
+        )
+    )
+
+    return screen_x, screen_y
+
+
+def goto_3d(x, y, z):
+    sx, sy = project(x, y, z)
+    lost.goto(sx, sy)
+
+
+def draw_line_3d(x1, y1, z1, x2, y2, z2, width=2):
+    lost.penup()
+    goto_3d(x1, y1, z1)
+    lost.pendown()
+    lost.width(width)
+    goto_3d(x2, y2, z2)
+    lost.penup()
+
+def write_3d(text, x, y, z, size=10):
+    lost.penup()
+    goto_3d(x, y, z)
+    lost.write(text, align="center", font=("Arial", size, "normal"))
+
+
+def draw_axes():
+    # X axis
+    lost.color("red")
+    draw_line_3d(-AXIS_LENGTH, 0, 0, AXIS_LENGTH, 0, 0, 3)
+
+    # Y axis
+    lost.color("green")
+    draw_line_3d(0, -AXIS_LENGTH, 0, 0, AXIS_LENGTH, 0, 3)
+
+    # Z axis
+    lost.color("blue")
+    draw_line_3d(0, 0, -AXIS_LENGTH, 0, 0, AXIS_LENGTH, 3)
+
+    write_3d("+X", AXIS_LENGTH + 1, 0, 0, 12)
+    write_3d("-X", -AXIS_LENGTH - 1, 0, 0, 12)
+
+    write_3d("+Y", 0, AXIS_LENGTH + 1, 0, 12)
+    write_3d("-Y", 0, -AXIS_LENGTH - 1, 0, 12)
+
+    write_3d("+Z", 0, 0, AXIS_LENGTH + 1, 12)
+    write_3d("-Z", 0, 0, -AXIS_LENGTH - 1, 12)
+
+    # Tick marks
+    for i in range(-AXIS_LENGTH, AXIS_LENGTH + 1, 10):
+        if i != 0:
+
+            lost.color("red")
+            draw_line_3d(i, -0.15, 0, i, 0.15, 0, 1)
+            write_3d(str(i), i, -0.6, 0, 8)
+
+            lost.color("green")
+            draw_line_3d(-0.15, i, 0, 0.15, i, 0, 1)
+            write_3d(str(i), -0.6, i, 0, 8)
+
+            lost.color("blue")
+            draw_line_3d(-0.15, 0, i, 0.15, 0, i, 1)
+            write_3d(str(i), -0.7, 0, i, 8)
+
+    write_3d("0", 0, 0, 0, 10)
+
+def draw_3d_grid():
+    lost.color("light gray")
+
+    step = 20
+
+    # Lines parallel to X axis
+    for y in range(-AXIS_LENGTH, AXIS_LENGTH+1, step):
+        for z in range(-AXIS_LENGTH, AXIS_LENGTH+1, step):
+            draw_line_3d(-AXIS_LENGTH, y, z, AXIS_LENGTH, y, z, 1)
+
+    # Lines parallel to Y axis
+    for x in range(-AXIS_LENGTH, AXIS_LENGTH+1, step):
+        for z in range(-AXIS_LENGTH, AXIS_LENGTH+1, step):
+            draw_line_3d(x, -AXIS_LENGTH, z, x, AXIS_LENGTH, z, 1)
+
+    # Lines parallel to Z axis
+    for x in range(-AXIS_LENGTH, AXIS_LENGTH+1, step):
+        for y in range(-AXIS_LENGTH, AXIS_LENGTH+1, step):
+            draw_line_3d(x, y, -AXIS_LENGTH, x, y, AXIS_LENGTH, 1)
+
+def draw_bolden(front_only=False):
+    lost.color("gray")
+    a = AXIS_LENGTH
+
+    edges = []
+
+
+    for y in (-a, a):
+        for z in (-a, a):
+            edges.append(((-a, y, z), (a, y, z)))
+
+
+    for x in (-a, a):
+        for z in (-a, a):
+            edges.append(((x, -a, z), (x, a, z)))
+
+    for x in (-a, a):
+        for y in (-a, a):
+            edges.append(((x, y, -a), (x, y, a)))
+
+    if front_only:
+        corners = [
+            (x, y, z)
+            for x in (-a, a)
+            for y in (-a, a)
+            for z in (-a, a)
+        ]
+
+        def viewing_depth(point):
+            x, y, z = point
+
+            rotated_x = (
+                x * math.cos(ROTATION)
+                - y * math.sin(ROTATION)
+            )
+
+            rotated_y = (
+                x * math.sin(ROTATION)
+                + y * math.cos(ROTATION)
+            )
+
+            return z - rotated_x - rotated_y
+
+        back_corner = min(corners, key=viewing_depth)
+
+        edges = [
+            edge for edge in edges
+            if back_corner not in edge
+        ]
+
+    for start, end in edges:
+        draw_line_3d(
+            start[0], start[1], start[2],
+            end[0], end[1], end[2],
+            3
+        )
+
+while input("Do you want to run the simulation? (y/n): ").lower() == "y":
+    SCALE = float(input("Enter the scale factor (default 2): ") or SCALE)
+    AXIS_LENGTH = int(input("Enter the axis length (default 100): ") or AXIS_LENGTH)
+    ROTATION = math.radians(float(input("Enter the rotation angle in degrees (default 20): ") or math.degrees(ROTATION)))
+    ORIGIN_X = float(input("Enter the X coordinate of the origin (default 0): ") or ORIGIN_X)
+    ORIGIN_Y = float(input("Enter the Y coordinate of the origin (default 0): ") or ORIGIN_Y)
+    ORIGIN_Z = float(input("Enter the Z coordinate of the origin (default 0): ") or ORIGIN_Z)
+    r.seed(SEED)
+
+    draw_3d_grid()
+    draw_bolden()
+    draw_axes()
+
+
+    lost.update()
+
+    #lost.tracer(1)
+    N = int(input("Enter the number of steps: "))
+    s = int(input("Enter the step size: "))
+    simulations = int(input("Enter the number of simulations: "))
+
+
+    def random_walk(s,x,y,z):
+        theta = r.uniform(0, 2 * math.pi)
+        dz = r.uniform(-1, 1)
+        horizontal_distance = math.sqrt(1 - dz**2)
+        new_x = x + horizontal_distance * s * math.cos(theta)
+        new_y = y + horizontal_distance * s * math.sin(theta)
+        new_z = z + s * dz
+        draw_line_3d(x, y, z, new_x, new_y, new_z, 2)
+        return new_x, new_y, new_z
+
+    for i in range(simulations):
+        steps=0
+        lost.penup()
+        lost.goto(0, 0)
+        x,y,z = 0,0,0
+        lost.pendown()
+        lost.color(r.random(), r.random(), r.random())
+        print((i+1)/simulations*100,"% complete")
+        for j in range(N):
+            x, y, z = random_walk(s, x, y, z)
+        screen.update()
+        
+        #while (math.hypot(lost.xcor(), lost.ycor()) > 0.33 and steps < 20000 )or steps == 0:
+        #    x, y, z = random_walk(s, x, y, z)
+        #    steps+=1
+        #print(math.hypot(lost.xcor(), lost.ycor()), lost.pos())
+            
+        #lost.penup()
+        
+        
+        #lost.goto(-(simulations-1)*65+i*130, 315)
+        #lost.write(f"Total steps: {steps}", align="center", font=("Arial", 12, "normal"))
+    lost.goto(0,340)
+    lost.color("black")
+    lost.write(f"{simulations} simulations, with {N} steps  with a step size of {s}", align="center", font=("Arial", 15, "normal"))
+    
+    screen.update()
+
+
+    #draw_3d_grid()
+    #draw_axes()
+    draw_bolden(front_only=True)
+    
+    
+print("The simulation is complete. You can close the window now.")
+print(SEED)
+screen.update()
+lost.done()
